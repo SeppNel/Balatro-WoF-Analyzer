@@ -11,7 +11,6 @@ BLINDS_PLAYED = 0
 SHOP_ACTIONS = 0
 
 
-
 def play_flushes(G):
     suit_count = {
         "Hearts": 0,
@@ -30,10 +29,7 @@ def play_flushes(G):
             if card["suit"] == most_common_suit:
                 flush_cards.append(card)
         flush_cards.sort(key=lambda x: x["value"], reverse=True)
-        return [
-            Actions.PLAY_HAND,
-            [G["hand"].index(card) + 1 for card in flush_cards[:5]],
-        ]
+        return [Actions.PLAY_HAND, [G["hand"].index(card) + 1 for card in flush_cards[:5]],]
 
     # We don't have a flush, so we discard up to 5 cards that are not of the most common suit
     discards = []
@@ -49,9 +45,7 @@ def play_flushes(G):
             action = Actions.PLAY_HAND
         return [action, [G["hand"].index(card) + 1 for card in discards]]
 
-    print(
-        "Somehow don't have a flush, but also don't have any cards to discard. Playing the first card"
-    )
+    print("Somehow don't have a flush, but also don't have any cards to discard. Playing the first card")
     return [Actions.PLAY_HAND, [1]]
 
 
@@ -61,13 +55,12 @@ def skip_or_select_blind(self, G):
     if RUN_FINISHED and G["round"] == 0:
         RUNS += 1
         print("--------------------")
-        print(f"|     Run {RUNS}       |")
+        print(f"|     Run {RUNS}        |")
         print("--------------------")
         print(f"WOF Uses = {WOF_USES}")
         print(f"WOF Hits = {WOF_HITS}")
         if WOF_USES > 0:
             print(f"WOF Chance = {WOF_HITS / WOF_USES * 100}%")
-
 
         RUN_FINISHED = False
         BLINDS_PLAYED = 0
