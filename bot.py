@@ -80,6 +80,8 @@ class Bot:
 
         self.state = {}
 
+        self.restartOnError = False
+
     def skip_or_select_blind(self):
         raise NotImplementedError(
             "Error: Bot.skip_or_select_blind must be implemented."
@@ -202,6 +204,9 @@ class Bot:
             case "rearrange_hand":
                 return self.rearrange_hand(self, self.G)
 
+    def restart(self):
+        return
+
     def run_step(self):
         if self.sock is None:
             self.verifyimplemented()
@@ -238,6 +243,11 @@ class Bot:
                 print("Socket error")
                 self.sock = None
                 self.running = False
+
+                if self.restartOnError:
+                    self.restart()
+
+
 
     def run(self):
         while self.running:

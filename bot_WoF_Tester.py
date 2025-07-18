@@ -1,4 +1,9 @@
 from bot import Bot, Actions
+import time
+import types
+import subprocess
+import os
+import signal
 
 #STATS
 WOF_USES = 0
@@ -165,10 +170,52 @@ def rearrange_consumables(self, G):
 def rearrange_hand(self, G):
     return [Actions.REARRANGE_HAND, []]
 
+def start_balatro_instance2(self):
+    bottles_cli = "flatpak run --command=bottles-cli com.usebottles.bottles"
+    start_command = bottles_cli + " run -b Babot -p Balatro"
+    self.balatro_instance = subprocess.Popen(
+        [start_command, str(self.bot_port)], shell=True
+    )
+
+def stop_balatro_instance2(self):
+    if self.balatro_instance:
+        self.balatro_instance.kill()
+
+
+def start_balatro_instance(self):
+    bottles_cli = "flatpak run --command=bottles-cli com.usebottles.bottles"
+    start_command = bottles_cli + " run -b Babot -p Balatro"
+    self.balatro_instance = subprocess.Popen(
+        [start_command, str(self.bot_port)],
+        shell=True,
+        preexec_fn=os.setsid  # Start in new process group
+    )
+    time.sleep(10)
+
+def stop_balatro_instance(self):
+    if self.balatro_instance:
+        try:
+            os.killpg(os.getpgid(self.balatro_instance.pid), signal.SIGTERM)
+            print(f"Killed process group {os.getpgid(self.balatro_instance.pid)}")
+            time.sleep(2)
+        except ProcessLookupError:
+            print("Process already exited.")
+        self.balatro_instance = None
+
+def restart(self):
+    self.stop_balatro_instance()
+    self.start_balatro_instance()
+    
+    RUN_FINISHED = False
+    BLINDS_PLAYED = 0
+    SHOP_ACTIONS = 0
+    mybot.running = True
+
 
 if __name__ == "__main__":
     mybot = Bot(deck="Plasma Deck", stake=1)
     mybot.running = True
+    mybot.restartOnError = True
 
     mybot.skip_or_select_blind = skip_or_select_blind
     mybot.select_cards_from_hand = select_cards_from_hand
@@ -180,4 +227,9 @@ if __name__ == "__main__":
     mybot.rearrange_consumables = rearrange_consumables
     mybot.rearrange_hand = rearrange_hand
 
+    mybot.restart = types.MethodType(restart, mybot)
+    mybot.start_balatro_instance = types.MethodType(start_balatro_instance, mybot)
+    mybot.stop_balatro_instance = types.MethodType(stop_balatro_instance, mybot)
+
+    mybot.start_balatro_instance()
     mybot.run()
