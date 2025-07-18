@@ -119,6 +119,7 @@ def select_shop_action(self, G):
             if card["label"] == "The Wheel of Fortune":
                 wof_index = i
                 wof_found = True
+                i += 1
         
         if wof_found and len(G["jokers"]) > 0:
             WOF_USES += 1
