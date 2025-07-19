@@ -4,6 +4,7 @@ import types
 import subprocess
 import os
 import signal
+from logger import Logger
 
 #STATS
 WOF_USES = 0
@@ -15,6 +16,18 @@ RUN_FINISHED = False
 BLINDS_PLAYED = 0
 SHOP_ACTIONS = 0
 
+log = Logger()
+
+def log_run_info():
+    global RUNS, WOF_USES, WOF_HITS
+
+    log.log("RUN INFO", "--------------------")
+    log.log("RUN INFO", f"|     Run {RUNS}        |")
+    log.log("RUN INFO", "--------------------")
+    log.log("RUN INFO", f"WOF Uses = {WOF_USES}")
+    log.log("RUN INFO", f"WOF Hits = {WOF_HITS}")
+    if WOF_USES > 0:
+        log.log("RUN INFO", f"WOF Chance = {WOF_HITS / WOF_USES * 100}%")
 
 def play_flushes(G):
     suit_count = {
@@ -50,22 +63,16 @@ def play_flushes(G):
             action = Actions.PLAY_HAND
         return [action, [G["hand"].index(card) + 1 for card in discards]]
 
-    print("Somehow don't have a flush, but also don't have any cards to discard. Playing the first card")
+    log.log("PLAY", "Somehow don't have a flush, but also don't have any cards to discard. Playing the first card")
     return [Actions.PLAY_HAND, [1]]
 
 
 def skip_or_select_blind(self, G):
-    global RUN_FINISHED, BLINDS_PLAYED, SHOP_ACTIONS, RUNS, WOF_USES, WOF_HITS
+    global RUN_FINISHED, BLINDS_PLAYED, SHOP_ACTIONS, RUNS
 
     if RUN_FINISHED and G["round"] == 0:
         RUNS += 1
-        print("--------------------")
-        print(f"|     Run {RUNS}        |")
-        print("--------------------")
-        print(f"WOF Uses = {WOF_USES}")
-        print(f"WOF Hits = {WOF_HITS}")
-        if WOF_USES > 0:
-            print(f"WOF Chance = {WOF_HITS / WOF_USES * 100}%")
+        log_run_info()
 
         RUN_FINISHED = False
         BLINDS_PLAYED = 0
@@ -196,10 +203,11 @@ def stop_balatro_instance(self):
     if self.balatro_instance:
         try:
             os.killpg(os.getpgid(self.balatro_instance.pid), signal.SIGTERM)
-            print(f"Killed process group {os.getpgid(self.balatro_instance.pid)}")
+            log.log("STOP", f"Killed process group {os.getpgid(self.balatro_instance.pid)}")
             time.sleep(2)
         except ProcessLookupError:
-            print("Process already exited.")
+            log.log("STOP", "Process already exited.")
+            sys.exit()
         self.balatro_instance = None
 
 def restart(self):
