@@ -16,7 +16,15 @@ RUN_FINISHED = False
 BLINDS_PLAYED = 0
 SHOP_ACTIONS = 0
 
+mybot = ""
+
 log = Logger()
+
+def signal_handler_shutdown(sig, frame):
+    print('You pressed Ctrl+C!')
+    mybot.shutdown()
+
+signal.signal(signal.SIGINT, signal_handler_shutdown)
 
 def log_run_info():
     global RUNS, WOF_USES, WOF_HITS
@@ -177,17 +185,6 @@ def rearrange_consumables(self, G):
 def rearrange_hand(self, G):
     return [Actions.REARRANGE_HAND, []]
 
-def start_balatro_instance2(self):
-    bottles_cli = "flatpak run --command=bottles-cli com.usebottles.bottles"
-    start_command = bottles_cli + " run -b Babot -p Balatro"
-    self.balatro_instance = subprocess.Popen(
-        [start_command, str(self.bot_port)], shell=True
-    )
-
-def stop_balatro_instance2(self):
-    if self.balatro_instance:
-        self.balatro_instance.kill()
-
 
 def start_balatro_instance(self):
     bottles_cli = "flatpak run --command=bottles-cli com.usebottles.bottles"
@@ -197,14 +194,14 @@ def start_balatro_instance(self):
         shell=True,
         preexec_fn=os.setsid  # Start in new process group
     )
-    time.sleep(10)
+    time.sleep(25)
 
 def stop_balatro_instance(self):
     if self.balatro_instance:
         try:
             os.killpg(os.getpgid(self.balatro_instance.pid), signal.SIGTERM)
             log.log("STOP", f"Killed process group {os.getpgid(self.balatro_instance.pid)}")
-            time.sleep(2)
+            time.sleep(5)
         except ProcessLookupError:
             log.log("STOP", "Process already exited.")
             sys.exit()

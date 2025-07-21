@@ -239,16 +239,30 @@ class Bot:
                         cmdstr = self.actionToCmd(action)
                         self.sendcmd(cmdstr)
             except socket.error as e:
-                print(e)
-                print("Socket error")
-                self.sock = None
-                self.running = False
+                if self.running:
+                    print(e)
+                    print("Socket error")
+                    self.sock = None
+                    self.running = False
 
-                if self.restartOnError:
-                    self.restart()
+                    if self.restartOnError:
+                        self.restart()
 
 
 
     def run(self):
         while self.running:
             self.run_step()
+
+
+    def shutdown(self):
+        def shutdown(self):
+        self.running = False
+        if self.sock:
+            try:
+                self.sock.shutdown(socket.SHUT_RDWR)
+            except:
+                pass  # ignore if already closed
+            self.sock.close()
+            self.sock = None
+        self.stop_balatro_instance()
